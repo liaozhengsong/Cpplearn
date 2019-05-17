@@ -68,11 +68,16 @@ public:
         _pcond = new pthread_cond_t();
         pthread_cond_init(_pcond,attr);
     }
+    Mutex *getMutex()
+    {
+        return _pmutex;
+    }
     void wait();
     void notify();
     void notifyAll();
     ~Condition()
     {
+        pthread_cond_destroy(_pcond);
         delete _pcond;
         _pmutex->~Mutex();
     }
@@ -119,11 +124,13 @@ public:
        int  *p = ((cShare *)arg)->_pshare;
        while(1)
        {
+           ((cShare*)arg)->_pcond->getMutex()->lock();
            if(*p == 0)
            {
                 cout << "I am waiting" << endl;
                 ((cShare *)arg)->_pcond->wait();  
            }
+           ((cShare*)arg)->_pcond->getMutex()->unlock();
            cout << "finally" << endl;
            pthread_exit(NULL);
        }
